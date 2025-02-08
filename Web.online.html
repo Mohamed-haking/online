@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دردشة فيديو جماعية</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #chat { max-width: 500px; margin: auto; border: 1px solid #ccc; padding: 10px; }
+        #messages { height: 200px; overflow-y: auto; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        input, button { width: 100%; margin-top: 5px; }
+        video { width: 100%; max-height: 300px; }
+    </style>
+</head>
+<body>
+    <h2>دردشة فيديو جماعية (4 أشخاص كحد أقصى)</h2>
+    <div id="chat">
+        <div id="videos">
+            <video id="localVideo" autoplay muted></video>
+            <video id="remoteVideo" autoplay></video>
+        </div>
+        <div id="messages"></div>
+        <input type="text" id="username" placeholder="ادخل اسمك">
+        <input type="text" id="message" placeholder="اكتب رسالة">
+        <button onclick="sendMessage()">إرسال</button>
+    </div>
+    
+    <script>
+        const ws = new WebSocket('ws://localhost:8080');
+        
+        ws.onmessage = (event) => {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML += `<p>${event.data}</p>`;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        };
+        
+        function sendMessage() {
+            const username = document.getElementById('username').value.trim();
+            const message = document.getElementById('message').value.trim();
+            
+            if (username && message) {
+                ws.send(`${username}: ${message}`);
+                document.getElementById('message').value = '';
+            }
+        }
+        
+        // إعداد دردشة الفيديو
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(stream => {
+                document.getElementById('localVideo').srcObject = stream;
+            })
+            .catch(error => console.error('خطأ في تشغيل الفيديو:', error));
+    </script>
+</body>
+</html>
